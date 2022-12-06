@@ -1,7 +1,7 @@
 import os
 import re
 import subprocess
-from xonsh.history.main import history_main
+from xonsh.built_ins import XSH
 from xonsh.completers.path import complete_path
 from prompt_toolkit.keys import Keys
 
@@ -21,12 +21,22 @@ def get_fzf_binary_path():
     return path
 
 
+def _unique_history_items():
+    """ Generates history items without repetitions. """
+    history_hashes = set()
+    for hist_item in XSH.history.all_items():
+        inp = hist_item['inp']
+        inp_hash = hash(inp)
+        if inp_hash in history_hashes:
+            continue
+        yield inp
+        history_hashes.add(inp_hash)
+
 def fzf_insert_history(event):
     # Run fzf, feeding it the xonsh history
     # fzf prints the user's choice on stdout.
 
-    # universal_newlines=True is used because `history_main` writes str()s
-    # That also means that we don't have to `decode()` the stdout.read()` below.
+    # universal_newlines=True is useds to write strings, not bytes.
     popen_args = [
         get_fzf_binary_path(),
         '--read0',
@@ -40,7 +50,8 @@ def fzf_insert_history(event):
     if len(event.current_buffer.text) > 0:
         popen_args.append(f'-q ^{event.current_buffer.text}')
     proc = subprocess.Popen(popen_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-    history_main(args=['show', '-0', 'all'], stdout=proc.stdin)
+    for hist_line in _unique_history_items():
+        proc.stdin.write(hist_line+'\0')
     proc.stdin.close()
     proc.wait()
     choice = proc.stdout.read().strip()

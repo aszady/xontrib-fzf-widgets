@@ -22,7 +22,7 @@ Current widgets
 ----------------
 
 - **ssh:** Search in `/etc/ssh/ssh_config` or `~/.ssh/config` items and issue `ssh` command on the chosen item.
-- **history insert:** Search in all history entries and insert the chosen command to the prompt.
+- **history insert:** Search in unique history entries and insert the chosen command to the prompt.
 - **find file:** Find one or more files in the current directory and its sub-directories.
 - **find directory:** Similar to the previous one, but intended to only search for directories.
 
